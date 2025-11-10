@@ -1,6 +1,6 @@
 # Spotify Voice Assistant for Home Assistant
 
-**Voice-controlled Spotify playback using natural language.** Just say "Play Coldplay on the kitchen speaker" and your music starts playing - no complex YAML patterns, no cookie authentication, just works.
+**Voice-controlled Spotify playback using natural language.** Just say "Play Coldplay on the kitchen speaker" and your music starts playing - no complex YAML patterns and no cookie authentication.
 
 ## Requirements
 
@@ -226,18 +226,63 @@ Add this to your Extended OpenAI Conversation system prompt:
 Music Playback:
 - When asked to play music, follow this two-step process: 1) Call search_spotify to get the Spotify URI, 2) Call play_music with the URI and media player entity
 - Available media players: [list your Spotify Connect devices here, e.g., "media_player.kitchen_speaker, media_player.living_room_sonos"]
+- Default speaker: If no speaker is specified, use media_player.kitchen_speaker (change this to your preferred default)
 - Parse commands like "Play {Artist/Album/Track}" and determine the media type automatically
 - For playback control (pause, skip, volume), use the control_playback function
 ```
 
+**Customize the default speaker:** Replace `media_player.kitchen_speaker` with your preferred media player entity ID. The LLM will use this when you say "Play Coldplay" without specifying a location.
+
 ### Done! Try It
 
+**Standard Patterns (like intent-based systems):**
 - "Play Coldplay on the kitchen speaker"
 - "Play the album Parachutes"
 - "Play Yellow by Coldplay"
 - "Pause the music"
 - "Skip to the next track"
 - "Set volume to 50%"
+
+**Natural Language (LLM advantage):**
+- "I'm in the mood for some Coldplay"
+- "Put on that song Yellow"
+- "Start playing Coldplay" (uses default speaker from prompt)
+- "Can you play the Parachutes album?"
+- "Play me something by Coldplay"
+- "I want to hear some chill music from Coldplay"
+- "Play Coldplay but shuffle it"
+- "Put on some music from that British band with Chris Martin"
+
+**Conversational Playback Control:**
+- "Make it louder" (instead of "Set volume to 70")
+- "Turn it down a bit" (instead of "Set volume to 30")
+- "Next song please" (instead of "Skip to next track")
+- "Stop the music" (instead of "Pause playback")
+
+> **Note:** When no speaker is specified, the LLM will use the default media player defined in your Extended OpenAI Conversation prompt. Add instructions like "If no speaker specified, use media_player.kitchen_speaker" to your system prompt.
+
+## Why Natural Language Matters
+
+Traditional voice assistants require specific sentence patterns:
+```
+Intent Pattern: "Play [artist] on [speaker]"
+✅ Works: "Play Coldplay on kitchen speaker"
+❌ Fails: "I want to listen to Coldplay"
+❌ Fails: "Put on some Coldplay"
+❌ Fails: "Start playing Coldplay in the kitchen"
+```
+
+This integration uses LLM-based function calling to understand conversational requests:
+```
+LLM Understanding: Extracts intent from natural speech
+✅ Works: "Play Coldplay on kitchen speaker"
+✅ Works: "I want to listen to Coldplay"
+✅ Works: "Put on some Coldplay"
+✅ Works: "Start playing Coldplay in the kitchen"
+✅ Works: "Play me that British band with Chris Martin"
+```
+
+The LLM understands **what you mean**, not just **what you say**.
 
 ## Compatible Speakers
 
