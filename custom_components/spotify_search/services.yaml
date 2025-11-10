@@ -1,0 +1,28 @@
+search:
+  name: Search Spotify
+  description: Search Spotify for artists, albums, tracks, or playlists and return the Spotify URI. Uses exact match when available for artist searches. Leverages your existing Home Assistant Spotify integration - no additional authentication needed.
+  fields:
+    query:
+      name: Query
+      description: Search query (artist, album, track, or playlist name)
+      required: true
+      example: "Coldplay"
+      selector:
+        text:
+    type:
+      name: Type
+      description: Type of content to search for. Artist search uses exact name matching to avoid personalized recommendations.
+      required: false
+      default: "artist"
+      example: "artist"
+      selector:
+        select:
+          options:
+            - "artist"
+            - "album"
+            - "track"
+            - "playlist"
+
+clear_cache:
+  name: Clear Cache
+  description: Clear the cached Spotify client. The integration caches the Spotify client reference for performance (15-50x faster searches). Use this service if you experience issues after removing or re-adding the Spotify integration. The cache automatically invalidates when the Spotify integration is reloaded.

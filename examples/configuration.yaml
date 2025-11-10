@@ -1,0 +1,11 @@
+# Home Assistant Configuration Example
+# Add to your configuration.yaml
+
+# Spotify Voice Assistant Integration
+spotify_search:
+
+# Optional: Enable debug logging
+logger:
+  default: info
+  logs:
+    custom_components.spotify_search: debug

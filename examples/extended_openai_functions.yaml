@@ -1,0 +1,120 @@
+# Extended OpenAI Conversation Function Configuration
+# Add these to your Extended OpenAI Conversation integration settings
+
+- spec:
+    name: search_spotify
+    description: Search Spotify for an artist, album, or track and return the Spotify URI. Use this before playing music to get the URI.
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Artist, album, or track name to search for (e.g., "Coldplay", "Parachutes", "Yellow")
+        type:
+          type: string
+          enum: [artist, album, track]
+          description: Type of content to search for
+      required:
+        - query
+        - type
+  function:
+    type: script
+    sequence:
+      - service: spotify_search.search
+        response_variable: _function_result
+        data:
+          query: "{{ query }}"
+          type: "{{ type }}"
+
+- spec:
+    name: play_music
+    description: Play music on a Spotify Connect device using a Spotify URI. You must first call search_spotify to get the URI.
+    parameters:
+      type: object
+      properties:
+        spotify_uri:
+          type: string
+          description: Spotify URI from search_spotify (e.g., "spotify:artist:4gzpq5DPGxSnKTe4SA8HAU")
+        media_player:
+          type: string
+          description: Entity ID of Spotify Connect media player (e.g., "media_player.kitchen_speaker")
+      required:
+        - spotify_uri
+        - media_player
+  function:
+    type: script
+    sequence:
+      - service: media_player.play_media
+        target:
+          entity_id: "{{ media_player }}"
+        data:
+          media_content_id: "{{ spotify_uri }}"
+          media_content_type: "music"
+
+- spec:
+    name: control_playback
+    description: Control music playback (pause, resume, stop, next track, previous track, set volume)
+    parameters:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [pause, play, stop, next_track, previous_track, volume_set]
+          description: Playback control action
+        media_player:
+          type: string
+          description: Entity ID of media player
+        volume_level:
+          type: number
+          description: Volume level (0-100) for volume_set action only
+      required:
+        - action
+        - media_player
+  function:
+    type: script
+    sequence:
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'pause' }}"
+            sequence:
+              - service: media_player.media_pause
+                target:
+                  entity_id: "{{ media_player }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'play' }}"
+            sequence:
+              - service: media_player.media_play
+                target:
+                  entity_id: "{{ media_player }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'stop' }}"
+            sequence:
+              - service: media_player.media_stop
+                target:
+                  entity_id: "{{ media_player }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'next_track' }}"
+            sequence:
+              - service: media_player.media_next_track
+                target:
+                  entity_id: "{{ media_player }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'previous_track' }}"
+            sequence:
+              - service: media_player.media_previous_track
+                target:
+                  entity_id: "{{ media_player }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'volume_set' }}"
+            sequence:
+              - service: media_player.volume_set
+                target:
+                  entity_id: "{{ media_player }}"
+                data:
+                  volume_level: "{{ volume_level / 100 }}"

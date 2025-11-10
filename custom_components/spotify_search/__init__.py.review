@@ -1,0 +1,166 @@
+"""Spotify Search Integration for Home Assistant."""
+import logging
+from typing import Any
+
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.exceptions import HomeAssistantError
+
+_LOGGER = logging.getLogger(__name__)
+
+DOMAIN = "spotify_search"
+VALID_SEARCH_TYPES = {"artist", "album", "track", "playlist"}
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the Spotify Search component."""
+
+    # Cache Spotify entity lookup for performance
+    spotify_entity_cache = {"entity": None, "client": None}
+
+    async def get_spotify_client():
+        """Get Spotify client with caching."""
+        # Return cached client if available
+        if spotify_entity_cache["client"] is not None:
+            return spotify_entity_cache["client"]
+
+        # Find Spotify media player entity
+        spotify_entity_id = None
+        for state in hass.states.async_all("media_player"):
+            if "spotify" in state.entity_id.lower():
+                spotify_entity_id = state.entity_id
+                break
+
+        if not spotify_entity_id:
+            raise HomeAssistantError("No Spotify media player entity found")
+
+        _LOGGER.debug("Found Spotify entity: %s", spotify_entity_id)
+
+        # Get the Spotify integration's data through entity platform
+        entity_component = hass.data.get("entity_components", {}).get("media_player")
+        if not entity_component:
+            raise HomeAssistantError("Media player component not available")
+
+        # Find the Spotify entity object
+        spotify_entity = None
+        for entity in entity_component.entities:
+            if entity.entity_id == spotify_entity_id:
+                spotify_entity = entity
+                break
+
+        if not spotify_entity:
+            raise HomeAssistantError(f"Spotify entity {spotify_entity_id} not found")
+
+        # Access the Spotify client from the coordinator
+        if not hasattr(spotify_entity, "coordinator"):
+            raise HomeAssistantError("Spotify entity does not have a coordinator")
+
+        coordinator = spotify_entity.coordinator
+
+        if not hasattr(coordinator, "client"):
+            raise HomeAssistantError("Spotify coordinator does not have a client")
+
+        client = coordinator.client
+        _LOGGER.debug("Spotify client type: %s", type(client).__name__)
+
+        # Cache for future calls
+        spotify_entity_cache["entity"] = spotify_entity
+        spotify_entity_cache["client"] = client
+
+        return client
+
+    async def search_spotify(call: ServiceCall) -> dict[str, Any]:
+        """Search Spotify and return the first result's URI."""
+        query = call.data.get("query")
+        search_type = call.data.get("type", "artist")
+
+        # Input validation
+        if not query:
+            _LOGGER.error("No query provided to spotify_search")
+            return {"error": "No query provided"}
+
+        if not isinstance(query, str):
+            _LOGGER.error("Query must be a string, got: %s", type(query).__name__)
+            return {"error": "Query must be a string"}
+
+        if search_type not in VALID_SEARCH_TYPES:
+            _LOGGER.error("Invalid search type: %s", search_type)
+            return {"error": f"Invalid type. Must be one of: {', '.join(VALID_SEARCH_TYPES)}"}
+
+        try:
+            client = await get_spotify_client()
+        except HomeAssistantError as err:
+            _LOGGER.error("Failed to get Spotify client: %s", err)
+            return {"error": str(err)}
+
+        try:
+            # Search Spotify using the integration's client
+            if search_type == "artist":
+                # For artists, search and use exact name matching
+                _LOGGER.debug("Searching for artist: %s", query)
+                results = await client.search(query, ["artist"], limit=10)
+                items_list = results.artists
+
+                if items_list:
+                    # Check for exact match (case-insensitive)
+                    query_lower = query.lower()
+                    exact_match = next(
+                        (artist for artist in items_list
+                         if hasattr(artist, "name") and artist.name.lower() == query_lower),
+                        None
+                    )
+
+                    # Use exact match if found, otherwise first result
+                    selected_artist = exact_match or items_list[0]
+
+                    # Defensive attribute access
+                    if not hasattr(selected_artist, "uri") or not hasattr(selected_artist, "name"):
+                        _LOGGER.error("Artist result missing required attributes")
+                        return {"error": "Invalid artist data from Spotify"}
+
+                    match_type = "exact match" if exact_match else "first result"
+                    _LOGGER.info("Found Spotify artist: %s (%s) - %s",
+                               selected_artist.name, selected_artist.uri, match_type)
+                    return {
+                        "uri": selected_artist.uri,
+                        "name": selected_artist.name,
+                        "type": "artist"
+                    }
+                else:
+                    _LOGGER.warning("No artists found for query: %s", query)
+                    return {"error": f"No artist found for: {query}"}
+            else:
+                # For albums, tracks, playlists - use direct search
+                results = await client.search(query, [search_type], limit=1)
+                items_list = getattr(results, f"{search_type}s", None)
+
+                if items_list:
+                    item = items_list[0]
+
+                    # Defensive attribute access
+                    if not hasattr(item, "uri") or not hasattr(item, "name"):
+                        _LOGGER.error("%s result missing required attributes", search_type)
+                        return {"error": f"Invalid {search_type} data from Spotify"}
+
+                    _LOGGER.info("Found Spotify %s: %s (%s)", search_type, item.name, item.uri)
+                    return {
+                        "uri": item.uri,
+                        "name": item.name,
+                        "type": search_type
+                    }
+                else:
+                    _LOGGER.warning("No results found for query: %s", query)
+                    return {"error": f"No {search_type} found for: {query}"}
+
+        except AttributeError as err:
+            _LOGGER.error("Spotify API returned unexpected data structure: %s", err)
+            return {"error": "Unexpected response from Spotify"}
+        except Exception as err:
+            _LOGGER.exception("Unexpected error searching Spotify: %s", err)
+            return {"error": "Search failed"}
+
+    hass.services.async_register(
+        DOMAIN, "search", search_spotify, supports_response="only"
+    )
+    return True
