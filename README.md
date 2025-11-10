@@ -2,6 +2,18 @@
 
 **Voice-controlled Spotify playback using natural language.** Just say "Play Coldplay on the kitchen speaker" and your music starts playing - no complex YAML patterns, no cookie authentication, just works.
 
+## Requirements
+
+Before using this integration, you need:
+
+1. **Home Assistant** - Obviously!
+2. **Spotify Premium account** - Required for Spotify Connect API
+3. **[Spotify integration](https://www.home-assistant.io/integrations/spotify/)** - Home Assistant's official Spotify integration (provides OAuth authentication)
+4. **[Extended OpenAI Conversation](https://github.com/jekalmin/extended_openai_conversation)** - Or another LLM-based conversation agent (Ollama, Google Generative AI, etc.)
+5. **At least one Spotify Connect device** - Any speaker/device that appears in Spotify (see [Compatible Speakers](#compatible-speakers) for examples)
+
+**Note:** This integration is specifically designed for custom voice assistants (Extended OpenAI Conversation, etc.). If you're using Home Assistant's built-in voice pipeline without a custom LLM, Music Assistant's native voice support may be sufficient.
+
 ## The Problem
 
 Want to control Spotify with your voice in Home Assistant? You'll quickly hit these issues:
