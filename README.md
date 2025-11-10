@@ -450,6 +450,20 @@ automation:
           media_content_type: "music"
 ```
 
+### Prompt Optimization for Multi-part Queries
+
+For better accuracy when users provide both song/album AND artist names, enhance your Extended OpenAI Conversation system prompt to combine search terms:
+
+```
+Music Query Optimization:
+- When user provides both song/album AND artist, combine them into the search query
+- Example: "Play Yellow by Coldplay" → search_spotify(query="Yellow Coldplay", type="track")
+- Example: "Play Parachutes album by Coldplay" → search_spotify(query="Parachutes Coldplay", type="album")
+- The combined query improves search accuracy by providing more context to Spotify
+```
+
+This approach leverages Spotify's search algorithm to naturally weight both terms, improving accuracy when multiple artists have songs/albums with the same name.
+
 ### Clear Cache Service
 
 If you experience issues after removing or re-adding the Spotify integration, you can manually clear the cached client:
