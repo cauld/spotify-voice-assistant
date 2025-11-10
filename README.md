@@ -7,11 +7,11 @@
 Want to control Spotify with your voice in Home Assistant? You'll quickly hit these issues:
 
 - **Spotcast** requires cookie authentication (`sp_dc`, `sp_key`) which breaks frequently with "serverTime" errors
-- **Music Assistant** requires running a separate music server - heavyweight for just Spotify
+- **Music Assistant** is excellent for UI-based music control, but voice commands require specific sentence patterns that break when using custom voice assistants (Extended OpenAI Conversation, etc.)
 - **SpotifyPlus** is feature-rich but complex to set up for simple voice commands
 - **Custom Sentences** require rigid YAML patterns - "Play {artist} on {speaker}" instead of natural language
 - **Built-in Spotify integration** has no search service for voice assistants to use
-- **Other integrations return wrong artists** - Standard Spotify search returns personalized recommendations instead of exact matches
+- **Standard Spotify search returns wrong artists** - Personalized recommendations instead of exact matches (ask for Coldplay, get Taylor Swift)
 
 ## The Solution
 
@@ -23,6 +23,32 @@ A lightweight integration designed specifically for voice assistants that:
 ✅ **Works with any Spotify Connect device** - WiiM, Sonos, Google Cast, Echo, whatever you have
 ✅ **Under 120 lines of code** - Simple, maintainable, easy to understand
 ✅ **Voice assistant ready** - Complete Extended OpenAI Conversation examples included
+
+## Comparison with Alternatives
+
+| Feature | Spotify Voice Assistant | Spotcast | Music Assistant | SpotifyPlus |
+|---------|------------------------|----------|-----------------|-------------|
+| **Primary Focus** | Voice control | Casting | Full music server | Spotify API wrapper |
+| **Lines of Code** | <120 | 1000+ | 10,000+ | 5000+ |
+| **Authentication** | Reuses HA OAuth | Cookies (breaks often) | Own server auth | Own OAuth flow |
+| **Setup Complexity** | 1 YAML line | Cookies + config | Full server install | Complex config |
+| **Exact Artist Match** | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| **Voice Assistant Ready** | ✅ Yes (built-in) | ⚠️ Partial | ✅ Yes | ⚠️ Partial |
+| **Natural Language** | ✅ LLM-based | ❌ Rigid patterns | ✅ LLM-based | ❌ Manual calls |
+| **External Dependencies** | None | None | Separate server | None |
+| **Hardware Support** | Any Spotify Connect | Chromecast focused | Universal | Any Spotify Connect |
+
+## Features
+
+- ✅ **Voice-first design** - Built for natural language from day one
+- ✅ **Hardware agnostic** - Works with any Spotify Connect device
+- ✅ **Search by type** - Artists, albums, tracks, playlists
+- ✅ **Exact match preference** - Finds what you ask for, not recommendations
+- ✅ **Complete examples** - Extended OpenAI Conversation config included
+- ✅ **Playback control** - Pause, play, skip, volume - all via voice
+- ✅ **Zero config authentication** - Leverages existing Spotify integration
+- ✅ **Detailed logging** - Debug mode shows exactly what's happening
+- ✅ **Service response support** - Returns data to automations/scripts
 
 ## Quick Start
 
@@ -246,6 +272,32 @@ This integration works with **any Spotify Connect-compatible device**:
 
 **Note:** If your device runs Spotify and shows up in Home Assistant's integrations, it will work with this integration.
 
+## Use With Music Assistant
+
+**You can (and should!) use both Music Assistant and this integration together.** They complement each other perfectly:
+
+### Music Assistant
+- **Best for:** Rich UI-based music control in dashboards and automations
+- **Strengths:** Multi-room audio, queue management, playlist management, beautiful UI
+- **Voice support:** Built-in voice commands work with Home Assistant's default voice pipeline
+- **Limitation:** Voice commands require specific sentence patterns and don't work with custom voice assistants (Extended OpenAI Conversation, custom LLMs, etc.)
+
+### This Integration (Spotify Voice Assistant)
+- **Best for:** Natural language voice control with custom voice assistants
+- **Strengths:** Works with Extended OpenAI Conversation, fully natural language, exact artist matching
+- **Use case:** "Play some Coldplay in the kitchen" → LLM interprets naturally and plays music
+- **Limitation:** Not a full music server, just search + playback control
+
+### Why Use Both?
+Many users (including the author) run both together:
+- **Music Assistant** provides the UI for manual control, queue management, and automations
+- **This integration** handles natural language voice commands via custom LLM assistants
+- **They work together seamlessly:** Music started via voice appears in Music Assistant's UI and remains fully controllable there
+
+Example workflow: Say "Play Coldplay on office speaker" → music starts → open Music Assistant UI → see what's playing, adjust volume, skip tracks, manage queue - all through MA's interface.
+
+They don't conflict because they access the same underlying Spotify Connect devices. This integration just provides the search service that custom voice assistants need to find music.
+
 ## How It Works
 
 ### The Two-Step Process
@@ -411,32 +463,6 @@ This shows search queries, match types (exact vs. first result), and any errors.
 2. Check device shows in Settings > Integrations
 3. Test playing Spotify directly to device from Spotify app
 4. Verify Spotify Premium account is active
-
-## Comparison with Alternatives
-
-| Feature | Spotify Voice Assistant | Spotcast | Music Assistant | SpotifyPlus |
-|---------|------------------------|----------|-----------------|-------------|
-| **Primary Focus** | Voice control | Casting | Full music server | Spotify API wrapper |
-| **Lines of Code** | <120 | 1000+ | 10,000+ | 5000+ |
-| **Authentication** | Reuses HA OAuth | Cookies (breaks often) | Own server auth | Own OAuth flow |
-| **Setup Complexity** | 1 YAML line | Cookies + config | Full server install | Complex config |
-| **Exact Artist Match** | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
-| **Voice Assistant Ready** | ✅ Yes (built-in) | ⚠️ Partial | ✅ Yes | ⚠️ Partial |
-| **Natural Language** | ✅ LLM-based | ❌ Rigid patterns | ✅ LLM-based | ❌ Manual calls |
-| **External Dependencies** | None | None | Separate server | None |
-| **Hardware Support** | Any Spotify Connect | Chromecast focused | Universal | Any Spotify Connect |
-
-## Features
-
-- ✅ **Voice-first design** - Built for natural language from day one
-- ✅ **Hardware agnostic** - Works with any Spotify Connect device
-- ✅ **Search by type** - Artists, albums, tracks, playlists
-- ✅ **Exact match preference** - Finds what you ask for, not recommendations
-- ✅ **Complete examples** - Extended OpenAI Conversation config included
-- ✅ **Playback control** - Pause, play, skip, volume - all via voice
-- ✅ **Zero config authentication** - Leverages existing Spotify integration
-- ✅ **Detailed logging** - Debug mode shows exactly what's happening
-- ✅ **Service response support** - Returns data to automations/scripts
 
 ## Roadmap
 
