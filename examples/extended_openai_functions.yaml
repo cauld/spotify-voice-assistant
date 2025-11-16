@@ -53,13 +53,13 @@
 
 - spec:
     name: control_playback
-    description: Control music playback (pause, resume, stop, next track, previous track, set volume)
+    description: Control music playback (pause, resume, stop, next track, previous track, set volume, shuffle)
     parameters:
       type: object
       properties:
         action:
           type: string
-          enum: [pause, play, stop, next_track, previous_track, volume_set]
+          enum: [pause, play, stop, next_track, previous_track, volume_set, shuffle_on, shuffle_off]
           description: Playback control action
         media_player:
           type: string
@@ -118,3 +118,21 @@
                   entity_id: "{{ media_player }}"
                 data:
                   volume_level: "{{ volume_level / 100 }}"
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'shuffle_on' }}"
+            sequence:
+              - service: media_player.shuffle_set
+                target:
+                  entity_id: "{{ media_player }}"
+                data:
+                  shuffle: true
+          - conditions:
+              - condition: template
+                value_template: "{{ action == 'shuffle_off' }}"
+            sequence:
+              - service: media_player.shuffle_set
+                target:
+                  entity_id: "{{ media_player }}"
+                data:
+                  shuffle: false
