@@ -28,6 +28,8 @@ Before using this integration, you need:
 
 **Use both together:** Many users run Music Assistant for UI/management and this integration for voice control via custom conversation agents.
 
+> **⚠️ Important:** This integration provides the search functionality - your conversation agent's LLM model and hardware determine the actual voice command accuracy and response time. For local voice pipelines, qwen3:4b is a pretty good starting point. See [Performance](#performance) for optimization guidance.
+
 ## The Problem
 
 Want to control Spotify with your voice in Home Assistant? You'll quickly hit these issues:
