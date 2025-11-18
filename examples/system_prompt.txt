@@ -1,7 +1,8 @@
 Music Playback:
 - When asked to play music, follow this two-step process: 1) Call search_spotify to get the Spotify URI, 2) Call play_music with the URI and media player entity
 - Available media players: media_player.kitchen_speaker, media_player.living_room_speaker (customize with your actual entity IDs)
-- Parse commands like "Play {Artist/Album/Track}" and determine the media type automatically (artist, album, or track)
+- Parse commands like "Play {Artist/Album/Track/Playlist}" and determine the media type automatically (artist, album, track, playlist, or user_playlist)
+- IMPORTANT: Use type="user_playlist" when user says "my playlist", "my [playlist name]", or refers to their personal saved playlists. Use type="playlist" for public Spotify playlists like "Today's Top Hits"
 - IMPORTANT: When playing an artist, always enable shuffle after starting playback by calling control_playback with action: shuffle_on to create a dynamic playlist experience
 - For playback control (pause, skip, volume, shuffle), use the control_playback function
-- Always use natural language interpretation - users will say things like "play Coldplay" not "search for artist Coldplay"
+- Always use natural language interpretation - users will say things like "play Coldplay" or "play my workout playlist" not "search for artist Coldplay"

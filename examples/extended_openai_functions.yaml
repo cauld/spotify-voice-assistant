@@ -3,17 +3,17 @@
 
 - spec:
     name: search_spotify
-    description: Search Spotify for an artist, album, or track and return the Spotify URI. Use this before playing music to get the URI.
+    description: Search Spotify for an artist, album, track, or playlist and return the Spotify URI. Use this before playing music to get the URI.
     parameters:
       type: object
       properties:
         query:
           type: string
-          description: Artist, album, or track name to search for (e.g., "Coldplay", "Parachutes", "Yellow")
+          description: Artist, album, track, or playlist name to search for (e.g., "Coldplay", "Parachutes", "Yellow", "Today's Top Hits")
         type:
           type: string
-          enum: [artist, album, track]
-          description: Type of content to search for
+          enum: [artist, album, track, playlist, user_playlist]
+          description: Type of content to search for. Use 'user_playlist' when user says "my playlist" or refers to their personal playlists.
       required:
         - query
         - type

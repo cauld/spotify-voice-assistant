@@ -72,8 +72,9 @@ A lightweight integration designed specifically for voice assistants with functi
 
 - ✅ **Voice-first design** - Built for natural language from day one
 - ✅ **Hardware agnostic** - Works with any Spotify Connect device
-- ✅ **Search by type** - Artists, albums, tracks, playlists
-- ✅ **Exact match preference** - Finds what you ask for, not recommendations
+- ✅ **Search by type** - Artists, albums, tracks, playlists, and your personal playlists
+- ✅ **Exact match preference** - Finds what you ask for across all content types, not recommendations
+- ✅ **Personal playlist access** - Search within your saved Spotify playlists with "play my workout playlist"
 - ✅ **Complete examples** - Extended OpenAI Conversation config included
 - ✅ **Playback control** - Pause, play, skip, volume, shuffle - all via voice
 - ✅ **Artist radio mode** - Automatically shuffles when playing artists for dynamic playlists
@@ -121,17 +122,17 @@ Copy these functions to Extended OpenAI Conversation settings:
 ```yaml
 - spec:
     name: search_spotify
-    description: Search Spotify for an artist, album, or track and return the Spotify URI. Use this before playing music to get the URI.
+    description: Search Spotify for an artist, album, track, or playlist and return the Spotify URI. Use this before playing music to get the URI.
     parameters:
       type: object
       properties:
         query:
           type: string
-          description: Artist, album, or track name to search for (e.g., "Coldplay", "Parachutes", "Yellow")
+          description: Artist, album, track, or playlist name to search for (e.g., "Coldplay", "Parachutes", "Yellow", "Today's Top Hits")
         type:
           type: string
-          enum: [artist, album, track]
-          description: Type of content to search for
+          enum: [artist, album, track, playlist, user_playlist]
+          description: Type of content to search for. Use 'user_playlist' when user says "my playlist" or refers to their personal playlists.
       required:
         - query
         - type
@@ -247,7 +248,8 @@ Music Playback:
 - When asked to play music, follow this two-step process: 1) Call search_spotify to get the Spotify URI, 2) Call play_music with the URI and media player entity
 - Available media players: media_player.kitchen_speaker, media_player.gaming_room_speaker, media_player.office_speaker
 - Default speaker: If no speaker is specified, use media_player.kitchen_speaker
-- Parse commands like "Play {Artist/Album/Track}" and determine the media type automatically
+- Parse commands like "Play {Artist/Album/Track/Playlist}" and determine the media type automatically (artist, album, track, playlist, or user_playlist)
+- IMPORTANT: Use type="user_playlist" when user says "my playlist", "my [playlist name]", or refers to their personal saved playlists. Use type="playlist" for public Spotify playlists like "Today's Top Hits"
 - IMPORTANT: When playing an artist, always enable shuffle after starting playback by calling control_playback with action: shuffle_on to create a dynamic playlist experience
 - For playback control (pause, skip, volume, shuffle), use the control_playback function
 ```
@@ -266,6 +268,8 @@ Music Playback:
 - "Play Coldplay on the kitchen speaker"
 - "Play the album Parachutes"
 - "Play Yellow by Coldplay"
+- "Play Today's Top Hits"
+- "Play my workout playlist"
 - "Pause the music"
 - "Skip to the next track"
 - "Set volume to 50%"
@@ -280,6 +284,8 @@ Music Playback:
 - "I want to hear some chill music from Coldplay"
 - "Play Coldplay but shuffle it"
 - "Put on some music from that British band with Chris Martin"
+- "Play my chill vibes playlist"
+- "Put on my running music"
 
 **Conversational Playback Control:**
 - "Make it louder" (instead of "Set volume to 70")
@@ -409,16 +415,31 @@ LLM: Calls play_music(uri="spotify:artist:...", media_player="media_player.kitch
 Result: Music starts playing
 ```
 
-### Exact Match Artist Search
+### Exact Match Search
 
-When searching for artists, this integration uses smart matching to avoid Spotify's personalization issues:
+This integration uses smart matching across all content types to avoid Spotify's personalization issues:
 
-1. Queries Spotify for top 10 artist results
+1. Queries Spotify for top 10 results (instead of just 1)
 2. Checks each result for exact name match (case-insensitive)
 3. Returns exact match if found, otherwise returns first result
-4. Logs match type (exact/first) for debugging
+4. Logs match type (exact/first/partial) for debugging
+
+**Applies to:** Artists, albums, tracks, and playlists
 
 **Why this matters:** Standard Spotify search prioritizes personalized recommendations. If you search "Coldplay," you might get Taylor Swift if you listen to her frequently. Our exact matching ensures you get Coldplay when you ask for Coldplay.
+
+### User Playlist Search
+
+When you say "my playlist" or "my [playlist name]", the integration searches only within your saved Spotify playlists:
+
+1. Retrieves your personal Spotify library playlists
+2. First looks for exact name match (case-insensitive)
+3. Falls back to partial match if no exact match found
+4. Returns helpful error if no matching playlist exists
+
+**Examples:**
+- "Play my workout playlist" → Searches only your saved playlists
+- "Play Today's Top Hits" → Searches all public Spotify playlists
 
 ### No Additional Authentication
 
@@ -432,18 +453,41 @@ The integration leverages Home Assistant's official Spotify integration:
 
 The integration includes smart caching for optimal performance:
 
-**First search:** ~1.6-5.6ms (finds and caches Spotify client)
-**Subsequent searches:** ~0.1ms (uses cached client)
-**Performance gain:** 15-50x faster on repeated searches
+**Spotify Client Cache:**
+- **First search:** ~1.6-5.6ms (finds and caches Spotify client)
+- **Subsequent searches:** ~0.1ms (uses cached client)
+- **Performance gain:** 15-50x faster on repeated searches
+
+**User Playlist Cache:**
+- **First user_playlist search:** Fetches all user playlists from Spotify API
+- **Subsequent user_playlist searches:** Uses cached playlist data
+- **Performance gain:** Significantly faster for users with large playlist libraries
 
 **Cache Features:**
 - Automatically validates cached client on every call
 - Self-invalidates when Spotify integration is reloaded or removed
+- Caches user playlists to avoid repeated API calls
 - Manual cache clearing available via `spotify_search.clear_cache` service
 
 The cache is module-level and process-scoped, so it clears automatically on Home Assistant restart.
 
 ## Advanced Usage
+
+### Search Types
+
+The integration supports five search types:
+
+| Type | Description | Example Query | Use Case |
+|------|-------------|---------------|----------|
+| `artist` | Search all Spotify artists | "Coldplay" | Play an artist's music |
+| `album` | Search all Spotify albums | "Parachutes" | Play a specific album |
+| `track` | Search all Spotify tracks | "Yellow" | Play a specific song |
+| `playlist` | Search all public Spotify playlists | "Today's Top Hits" | Play curated or public playlists |
+| `user_playlist` | Search only your saved playlists | "workout" | Play your personal playlists |
+
+**Key difference:**
+- `playlist` - Searches all of Spotify's public playlists
+- `user_playlist` - Searches only playlists you've saved/created
 
 ### Developer Tools Testing
 
@@ -462,6 +506,24 @@ Response:
   "uri": "spotify:artist:4gzpq5DPGxSnKTe4SA8HAU",
   "name": "Coldplay",
   "type": "artist"
+}
+```
+
+Test user playlist search:
+
+```yaml
+service: spotify_search.search
+data:
+  query: "workout"
+  type: "user_playlist"
+```
+
+Response:
+```json
+{
+  "uri": "spotify:playlist:37i9dQZF1DX76Wlfdnj7AP",
+  "name": "Workout Beats",
+  "type": "playlist"
 }
 ```
 
@@ -503,11 +565,20 @@ This approach leverages Spotify's search algorithm to naturally weight both term
 
 ### Clear Cache Service
 
-If you experience issues after removing or re-adding the Spotify integration, you can manually clear the cached client:
+If you experience issues or want to refresh cached data (e.g., after adding new playlists to your Spotify library), you can manually clear the cache:
 
 ```yaml
 service: spotify_search.clear_cache
 ```
+
+This clears:
+- Cached Spotify client reference
+- Cached user playlist data
+
+**When to use:**
+- After adding/removing playlists in Spotify (to refresh user_playlist searches)
+- After removing or re-adding the Spotify integration
+- If experiencing unexpected search results
 
 The cache automatically invalidates when the Spotify integration is reloaded, so manual clearing is rarely needed.
 
