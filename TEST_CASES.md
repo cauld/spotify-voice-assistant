@@ -164,41 +164,39 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 ### 6. Playlist Queries
 
-**Test 6.1: Public playlist - exact match**
-- **Command:** "Play Today's Top Hits"
-- **Expected:** Searches public playlists, returns exact match for "Today's Top Hits"
-- **Result:**
-- **Pass/Fail:**
-
-**Test 6.2: Public playlist - common name**
-- **Command:** "Play Chill Vibes"
-- **Expected:** Searches public playlists with limit=10, prefers exact "Chill Vibes" match over "Chill Vibes Mix"
-- **Result:**
-- **Pass/Fail:**
-
-**Test 6.3: User playlist - exact match**
+**Test 6.1: User playlist - exact match**
 - **Command:** "Play my workout playlist"
-- **Expected:** Searches only user's saved playlists, finds exact match for "workout"
+- **Expected:** Removes "playlist" from query, searches user's playlists for exact match "workout"
 - **Result:**
 - **Pass/Fail:**
 
-**Test 6.4: User playlist - partial match**
+**Test 6.2: User playlist - partial match**
 - **Command:** "Play my running music"
-- **Expected:** If no exact "running music" match, finds partial match like "Running Music 2024"
+- **Expected:** Checks user playlists first, finds partial match like "Running Music 2024"
 - **Result:**
 - **Pass/Fail:**
 
-**Test 6.5: User playlist - not found**
-- **Command:** "Play my xyz123 playlist"
-- **Expected:** Returns error "No playlist matching 'xyz123' found in your library"
+**Test 6.3: User playlist - simple name**
+- **Command:** "Play vibes"
+- **Expected:** Checks user playlists first for "Vibes", falls back to public playlists if not found
 - **Result:**
 - **Pass/Fail:**
 
-**Test 6.6: Playlist vs user playlist distinction**
-- **Command 1:** "Play RapCaviar"
-- **Expected 1:** Uses type=playlist, searches all public playlists
-- **Command 2:** "Play my RapCaviar"
-- **Expected 2:** Uses type=user_playlist, searches only user's saved playlists (assuming user has saved RapCaviar)
+**Test 6.4: Public playlist fallback - exact match**
+- **Command:** "Play Today's Top Hits"
+- **Expected:** Removes "playlist" if present, checks user playlists first, then finds in public playlists with exact match
+- **Result:**
+- **Pass/Fail:**
+
+**Test 6.5: Public playlist fallback - common name**
+- **Command:** "Play Chill Vibes"
+- **Expected:** Checks user playlists first, then searches public playlists with exact match preference
+- **Result:**
+- **Pass/Fail:**
+
+**Test 6.6: Playlist not found anywhere**
+- **Command:** "Play xyz123 playlist"
+- **Expected:** Searches user playlists, then public playlists, returns error if not found
 - **Result:**
 - **Pass/Fail:**
 

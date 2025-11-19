@@ -7,7 +7,7 @@ from homeassistant.helpers.typing import ConfigType
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "spotify_search"
-VALID_SEARCH_TYPES = {"artist", "album", "track", "playlist", "user_playlist"}
+VALID_SEARCH_TYPES = {"artist", "album", "track", "playlist"}
 
 # Cache Spotify client to avoid repeated lookups
 _spotify_cache = {
@@ -142,17 +142,68 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     _LOGGER.warning("No artists found for query: %s", query)
                     return {"error": f"No artist found for: {query}"}
             elif search_type == "playlist":
-                # For playlists, search with higher limit and check for exact matches
-                _LOGGER.debug("Searching for playlist: %s", query)
-                results = await client.search(query, ["playlist"], limit=10)
+                # For playlists, search user's playlists first, then fall back to Spotify
+                _LOGGER.info("Searching for playlist: %s", query)
+
+                # Clean query: remove "playlist" and "playlists" from search term
+                query_cleaned = query.lower()
+                for word in ["playlist", "playlists"]:
+                    query_cleaned = query_cleaned.replace(word, "")
+                query_cleaned = " ".join(query_cleaned.split()).strip()  # Remove extra spaces
+                _LOGGER.info("Cleaned query: '%s' (original: '%s')", query_cleaned, query)
+
+                # Step 1: Search user's personal playlists first
+                try:
+                    # Get user's playlists (with caching)
+                    if _spotify_cache["user_playlists"] is None:
+                        _LOGGER.info("Cache miss, fetching user playlists from Spotify API")
+                        user_playlists_response = await client.get_playlists_for_current_user()
+                        if user_playlists_response and hasattr(user_playlists_response, "items"):
+                            items_list = user_playlists_response.items
+                            _spotify_cache["user_playlists"] = items_list
+                            _LOGGER.info("User playlists fetched and cached: %d playlists", len(items_list) if items_list else 0)
+                        else:
+                            _LOGGER.warning("Could not fetch user playlists")
+                            _spotify_cache["user_playlists"] = []
+                    else:
+                        _LOGGER.info("Using cached user playlists")
+
+                    user_playlists = _spotify_cache["user_playlists"]
+                    if user_playlists and len(user_playlists) > 0:
+                        playlist_names = [p.name if hasattr(p, "name") else "NO_NAME" for p in user_playlists]
+                        _LOGGER.info("User's playlist names: %s", playlist_names)
+
+                        # Search for exact match
+                        for playlist in user_playlists:
+                            if hasattr(playlist, "name") and playlist.name.lower() == query_cleaned:
+                                uri = playlist.uri if hasattr(playlist, "uri") else None
+                                name = playlist.name
+                                if uri:
+                                    _LOGGER.info("Found in user playlists (exact match): %s (%s)", name, uri)
+                                    return {"uri": uri, "name": name, "type": "playlist"}
+
+                        # Search for partial match
+                        for playlist in user_playlists:
+                            if hasattr(playlist, "name") and query_cleaned in playlist.name.lower():
+                                uri = playlist.uri if hasattr(playlist, "uri") else None
+                                name = playlist.name
+                                if uri:
+                                    _LOGGER.info("Found in user playlists (partial match): %s (%s)", name, uri)
+                                    return {"uri": uri, "name": name, "type": "playlist"}
+
+                        _LOGGER.info("Playlist not found in user's library, searching Spotify public playlists")
+                except Exception as err:
+                    _LOGGER.warning("Error searching user playlists: %s, falling back to Spotify search", err)
+
+                # Step 2: Fall back to Spotify public playlist search
+                _LOGGER.info("Searching Spotify public playlists for: %s", query_cleaned)
+                results = await client.search(query_cleaned, ["playlist"], limit=10)
                 items_list = results.playlists
                 if items_list and len(items_list) > 0:
                     # Check if any playlist name matches exactly (case-insensitive)
                     exact_match = None
-                    query_lower = query.lower()
                     for playlist in items_list:
-                        # Defensive attribute check
-                        if hasattr(playlist, "name") and playlist.name.lower() == query_lower:
+                        if hasattr(playlist, "name") and playlist.name.lower() == query_cleaned:
                             exact_match = playlist
                             break
 
@@ -167,69 +218,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     uri = selected_playlist.uri
                     name = selected_playlist.name
                     match_type = "exact match" if exact_match else "first result"
-                    _LOGGER.info("Found Spotify playlist: %s (%s) - %s", name, uri, match_type)
+                    _LOGGER.info("Found Spotify public playlist: %s (%s) - %s", name, uri, match_type)
                     return {"uri": uri, "name": name, "type": "playlist"}
                 else:
-                    _LOGGER.warning("No playlists found for query: %s", query)
+                    _LOGGER.warning("No playlists found for query: %s", query_cleaned)
                     return {"error": f"No playlist found for: {query}"}
-            elif search_type == "user_playlist":
-                # Search within user's saved playlists
-                _LOGGER.debug("Searching user's playlists for: %s", query)
-                try:
-                    # Get user's playlists (with caching)
-                    if _spotify_cache["user_playlists"] is None:
-                        _LOGGER.debug("Cache miss, fetching user playlists")
-                        user_playlists = await client.get_playlists_for_current_user()
-                        _spotify_cache["user_playlists"] = user_playlists
-                    else:
-                        _LOGGER.debug("Using cached user playlists")
-                        user_playlists = _spotify_cache["user_playlists"]
-
-                    if not user_playlists or not hasattr(user_playlists, "items"):
-                        _LOGGER.warning("No user playlists found or invalid response")
-                        return {"error": "Could not retrieve user playlists"}
-
-                    items_list = user_playlists.items
-                    if not items_list or len(items_list) == 0:
-                        _LOGGER.warning("User has no saved playlists")
-                        return {"error": "No saved playlists found"}
-
-                    # Search for exact match in user's playlists
-                    exact_match = None
-                    query_lower = query.lower()
-                    for playlist in items_list:
-                        if hasattr(playlist, "name") and playlist.name.lower() == query_lower:
-                            exact_match = playlist
-                            break
-
-                    # If no exact match, search for partial match
-                    partial_match = None
-                    if not exact_match:
-                        for playlist in items_list:
-                            if hasattr(playlist, "name") and query_lower in playlist.name.lower():
-                                partial_match = playlist
-                                break
-
-                    selected_playlist = exact_match or partial_match
-
-                    if not selected_playlist:
-                        _LOGGER.warning("No matching playlist found in user's library for: %s", query)
-                        return {"error": f"No playlist matching '{query}' found in your library"}
-
-                    # Defensive attribute checks
-                    if not hasattr(selected_playlist, "uri") or not hasattr(selected_playlist, "name"):
-                        _LOGGER.error("User playlist result missing required attributes")
-                        return {"error": "Invalid playlist data"}
-
-                    uri = selected_playlist.uri
-                    name = selected_playlist.name
-                    match_type = "exact match" if exact_match else "partial match"
-                    _LOGGER.info("Found user playlist: %s (%s) - %s", name, uri, match_type)
-                    return {"uri": uri, "name": name, "type": "playlist"}
-
-                except Exception as err:
-                    _LOGGER.error("Error retrieving user playlists: %s", err)
-                    return {"error": "Failed to retrieve user playlists"}
             else:
                 # For albums, tracks - search with higher limit and check for exact matches
                 _LOGGER.debug("Searching for %s: %s", search_type, query)

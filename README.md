@@ -72,9 +72,9 @@ A lightweight integration designed specifically for voice assistants with functi
 
 - ✅ **Voice-first design** - Built for natural language from day one
 - ✅ **Hardware agnostic** - Works with any Spotify Connect device
-- ✅ **Search by type** - Artists, albums, tracks, playlists, and your personal playlists
+- ✅ **Search by type** - Artists, albums, tracks, and playlists
 - ✅ **Exact match preference** - Finds what you ask for across all content types, not recommendations
-- ✅ **Personal playlist access** - Search within your saved Spotify playlists with "play my workout playlist"
+- ✅ **Smart playlist search** - Checks your personal playlists first, then falls back to public Spotify playlists
 - ✅ **Complete examples** - Extended OpenAI Conversation config included
 - ✅ **Playback control** - Pause, play, skip, volume, shuffle - all via voice
 - ✅ **Artist radio mode** - Automatically shuffles when playing artists for dynamic playlists
@@ -131,8 +131,8 @@ Copy these functions to Extended OpenAI Conversation settings:
           description: Artist, album, track, or playlist name to search for (e.g., "Coldplay", "Parachutes", "Yellow", "Today's Top Hits")
         type:
           type: string
-          enum: [artist, album, track, playlist, user_playlist]
-          description: Type of content to search for. Use 'user_playlist' when user says "my playlist" or refers to their personal playlists.
+          enum: [artist, album, track, playlist]
+          description: Type of content to search for. Playlist searches check your personal playlists first, then fall back to public Spotify playlists.
       required:
         - query
         - type
@@ -428,18 +428,20 @@ This integration uses smart matching across all content types to avoid Spotify's
 
 **Why this matters:** Standard Spotify search prioritizes personalized recommendations. If you search "Coldplay," you might get Taylor Swift if you listen to her frequently. Our exact matching ensures you get Coldplay when you ask for Coldplay.
 
-### User Playlist Search
+### Smart Playlist Search
 
-When you say "my playlist" or "my [playlist name]", the integration searches only within your saved Spotify playlists:
+Playlist searches automatically check your personal playlists first, then fall back to public Spotify playlists:
 
-1. Retrieves your personal Spotify library playlists
-2. First looks for exact name match (case-insensitive)
-3. Falls back to partial match if no exact match found
-4. Returns helpful error if no matching playlist exists
+1. Cleans the query (removes "playlist" and "playlists" from search terms)
+2. Searches your saved Spotify playlists for exact match
+3. If no exact match, searches your playlists for partial match
+4. If still not found, searches public Spotify playlists
+5. Returns exact match from public results if found, otherwise first result
 
 **Examples:**
-- "Play my workout playlist" → Searches only your saved playlists
-- "Play Today's Top Hits" → Searches all public Spotify playlists
+- "Play my workout playlist" → Checks your saved playlists first
+- "Play vibes" → Finds your "Vibes" playlist if you have one, otherwise searches public playlists
+- "Play Today's Top Hits" → Checks your playlists first, then finds public playlist
 
 ### No Additional Authentication
 

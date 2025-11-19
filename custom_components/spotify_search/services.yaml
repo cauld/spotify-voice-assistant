@@ -11,7 +11,7 @@ search:
         text:
     type:
       name: Type
-      description: Type of content to search for. All search types use exact name matching when possible. Use 'user_playlist' to search only within your saved playlists.
+      description: Type of content to search for. All search types use exact name matching when possible. Playlist searches check your personal playlists first, then fall back to public Spotify playlists.
       required: false
       default: "artist"
       example: "artist"
@@ -22,7 +22,6 @@ search:
             - "album"
             - "track"
             - "playlist"
-            - "user_playlist"
 
 clear_cache:
   name: Clear Cache

@@ -127,3 +127,37 @@ Add ability to search/play from user's Spotify saved content (liked songs, saved
 - Use Spotify API endpoints: `get_saved_tracks()`, `get_saved_albums()`
 - Handle pagination for large libraries
 - Apply similar caching strategy as user playlists
+
+---
+
+### 6. Podcast Support
+Add support for searching and playing podcasts and podcast episodes.
+
+**Current behavior:**
+- Integration only supports music content (artists, albums, tracks, playlists)
+- Podcasts are not searchable or playable
+
+**Proposed enhancement:**
+- Add `type="podcast"` for searching podcasts (shows)
+- Add `type="episode"` for searching specific podcast episodes
+- Support playing latest episode: "Play the latest episode of [podcast name]"
+- Support playing specific episodes: "Play [episode name] from [podcast name]"
+
+**Benefits:**
+- Complete Spotify content coverage
+- Voice control for podcast listening
+- Consistent experience across all Spotify content types
+
+**Implementation notes:**
+- Use Spotify API search types: `show` and `episode`
+- Consider caching user's saved/followed podcasts
+- Handle episode-specific logic (latest vs specific episode)
+- Update Extended OpenAI function definitions
+- Update system prompts with podcast examples
+- Add podcast test cases
+
+**API endpoints needed:**
+- `client.search(query, ["show"])` for podcast search
+- `client.search(query, ["episode"])` for episode search
+- `client.get_show_episodes(show_id)` for getting episodes
+- Potentially: saved/followed shows endpoint
