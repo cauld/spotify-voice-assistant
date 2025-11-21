@@ -5,8 +5,9 @@
   "config_flow": false,
   "dependencies": ["spotify"],
   "documentation": "https://github.com/cauld/spotify-voice-assistant",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/cauld/spotify-voice-assistant/issues",
   "requirements": [],
-  "version": "1.0.0",
-  "iot_class": "cloud_polling"
+  "version": "1.0.0"
 }
