@@ -46,9 +46,9 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 - **Result:**
 - **Pass/Fail:**
 
-**Test 2.2: Album with artist (combined query)**
+**Test 2.2: Album with artist**
 - **Command:** "Play Parachutes by Coldplay"
-- **Expected:** Searches for album "Parachutes Coldplay", plays correct album
+- **Expected:** Searches for album "Parachutes", plays correct album
 - **Result:**
 - **Pass/Fail:**
 
@@ -80,9 +80,9 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 - **Result:**
 - **Pass/Fail:**
 
-**Test 3.2: Track with artist (combined query)**
+**Test 3.2: Track with artist**
 - **Command:** "Play Yellow by Coldplay"
-- **Expected:** Searches for track "Yellow Coldplay", plays correct track
+- **Expected:** Searches for track "Yellow", plays correct track
 - **Result:**
 - **Pass/Fail:**
 
@@ -116,13 +116,13 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 **Test 4.2: Common track name with artist**
 - **Command:** "Play Hurt by Nine Inch Nails"
-- **Expected:** Searches for track "Hurt Nine Inch Nails", returns correct version
+- **Expected:** Searches for track "Hurt", LLM context helps return correct version
 - **Result:**
 - **Pass/Fail:**
 
 **Test 4.3: Common track name with different artist**
 - **Command:** "Play Hurt by Johnny Cash"
-- **Expected:** Searches for track "Hurt Johnny Cash", returns Cash cover version
+- **Expected:** Searches for track "Hurt", LLM context helps return Cash cover version
 - **Result:**
 - **Pass/Fail:**
 
@@ -202,7 +202,41 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 ---
 
-### 7. Playback Control
+### 7. Queue Management
+
+**Test 7.1: Queue track**
+- **Command:** "Queue Wish You Were Here"
+- **Expected:** Searches for track "Wish You Were Here", adds to queue without interrupting current playback
+- **Result:**
+- **Pass/Fail:**
+
+**Test 7.2: Add to queue with artist**
+- **Command:** "Add Yellow by Coldplay to the queue"
+- **Expected:** Searches for track "Yellow", adds to queue
+- **Result:**
+- **Pass/Fail:**
+
+**Test 7.3: Queue album**
+- **Command:** "Add the album Dark Side of the Moon to queue"
+- **Expected:** Searches for album "Dark Side of the Moon", adds to queue
+- **Result:**
+- **Pass/Fail:**
+
+**Test 7.4: Queue with speaker specified**
+- **Command:** "Queue some Pink Floyd on the kitchen speaker"
+- **Expected:** Searches for artist "Pink Floyd", adds to queue on kitchen speaker
+- **Result:**
+- **Pass/Fail:**
+
+**Test 7.5: Natural language queue**
+- **Command:** "Queue up some Pink Floyd for later"
+- **Expected:** Searches for artist "Pink Floyd", adds to queue
+- **Result:**
+- **Pass/Fail:**
+
+---
+
+### 8. Playback Control
 
 **Test 7.1: Pause**
 - **Command:** "Pause the music"
@@ -240,17 +274,35 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 - **Result:**
 - **Pass/Fail:**
 
-**Test 7.7: Stop**
+**Test 8.7: Stop**
 - **Command:** "Stop the music"
 - **Expected:** Stops playback
 - **Result:**
 - **Pass/Fail:**
 
+**Test 8.8: Shuffle on**
+- **Command:** "Shuffle on"
+- **Expected:** Enables shuffle mode
+- **Result:**
+- **Pass/Fail:**
+
+**Test 8.9: Shuffle off**
+- **Command:** "Turn shuffle off"
+- **Expected:** Disables shuffle mode
+- **Result:**
+- **Pass/Fail:**
+
+**Test 8.10: Natural language shuffle**
+- **Command:** "Shuffle this"
+- **Expected:** Enables shuffle mode
+- **Result:**
+- **Pass/Fail:**
+
 ---
 
-### 8. Multi-Speaker Scenarios
+### 9. Multi-Speaker Scenarios
 
-**Test 8.1: Different speaker each time**
+**Test 9.1: Different speaker each time**
 - **Commands:**
   - "Play Coldplay on the kitchen speaker"
   - "Play Radiohead on the gaming room speaker"
@@ -259,7 +311,7 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 - **Result:**
 - **Pass/Fail:**
 
-**Test 8.2: No speaker specified (uses default)**
+**Test 9.2: No speaker specified (uses default)**
 - **Command:** "Play Coldplay"
 - **Expected:** Plays on default speaker from system prompt
 - **Result:**
@@ -267,21 +319,21 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 ---
 
-### 9. Error Handling
+### 10. Error Handling
 
-**Test 9.1: Non-existent artist**
+**Test 10.1: Non-existent artist**
 - **Command:** "Play XYZ123NotARealBand"
 - **Expected:** Returns no results or best guess, handles gracefully
 - **Result:**
 - **Pass/Fail:**
 
-**Test 9.2: Typo in artist name**
+**Test 10.2: Typo in artist name**
 - **Command:** "Play Cold Play" (with space)
 - **Expected:** Spotify's fuzzy search finds "Coldplay"
 - **Result:**
 - **Pass/Fail:**
 
-**Test 9.3: Invalid speaker**
+**Test 10.3: Invalid speaker**
 - **Command:** "Play Coldplay on the bedroom speaker" (if bedroom speaker doesn't exist)
 - **Expected:** Error or fallback behavior
 - **Result:**
@@ -289,27 +341,27 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 ---
 
-### 10. Natural Language Variations
+### 11. Natural Language Variations
 
-**Test 10.1: Informal request**
+**Test 11.1: Informal request**
 - **Command:** "Put on some Coldplay"
 - **Expected:** Searches for artist "Coldplay", plays on default speaker
 - **Result:**
 - **Pass/Fail:**
 
-**Test 10.2: Question format**
+**Test 11.2: Question format**
 - **Command:** "Can you play Coldplay?"
 - **Expected:** Searches for artist "Coldplay", plays on default speaker
 - **Result:**
 - **Pass/Fail:**
 
-**Test 10.3: Context-heavy request**
+**Test 11.3: Context-heavy request**
 - **Command:** "I want to listen to Coldplay right now"
 - **Expected:** Searches for artist "Coldplay", plays on default speaker
 - **Result:**
 - **Pass/Fail:**
 
-**Test 10.4: Mood-based request**
+**Test 11.4: Mood-based request**
 - **Command:** "Play something chill from Coldplay"
 - **Expected:** Searches for artist "Coldplay", plays on default speaker
 - **Result:**
@@ -319,7 +371,7 @@ Test suite for validating Spotify Voice Assistant behavior with natural language
 
 ## Results Summary
 
-**Total Tests:** 40
+**Total Tests:** 53
 **Passed:** _____
 **Failed:** _____
 **Pass Rate:** _____%

@@ -1,4 +1,4 @@
-# Spotify Voice Assistant for Home Assistant
+# Spotify Voice Assistant (SVA) for Home Assistant
 
 **Voice-controlled Spotify playback using natural language.** Just say "Play Coldplay on the kitchen speaker" and your music starts playing - no complex YAML patterns and no cookie authentication.
 
@@ -18,7 +18,6 @@ Before using this integration, you need:
 - You want voice-controlled Spotify without running a full music server
 - You use conversation agents with function calling (Extended OpenAI Conversation, OpenAI, Gemini, etc.)
 - You want direct Spotify Connect integration with minimal dependencies
-- You prefer simple, maintainable code (<120 lines)
 
 **Consider alternatives if:**
 - You need multi-provider music aggregation (Spotify + local files + streaming services) → Use Music Assistant
@@ -26,32 +25,16 @@ Before using this integration, you need:
 - You use Home Assistant Assist voice pipeline → Music Assistant has [native voice support](https://github.com/music-assistant/voice-support)
 - You need advanced Spotify API features → Use SpotifyPlus
 
-**Use both together:** Many users run Music Assistant for UI/management and this integration for voice control via custom conversation agents.
+> **Important:** This integration provides the search functionality - your conversation agent's LLM model and hardware determine the actual voice command accuracy and response time. For local voice pipelines, qwen3:4b is a good starting point. See [Performance](#performance) for optimization guidance.
 
-> **⚠️ Important:** This integration provides the search functionality - your conversation agent's LLM model and hardware determine the actual voice command accuracy and response time. For local voice pipelines, qwen3:4b is a pretty good starting point. See [Performance](#performance) for optimization guidance.
+## Key Features
 
-## The Problem
-
-Want to control Spotify with your voice in Home Assistant? You'll quickly hit these issues:
-
-- **Spotcast** requires cookie authentication (`sp_dc`, `sp_key`) which breaks frequently with "serverTime" errors
-- **Music Assistant** is a full-featured music server - excellent for complete music management, but requires running a separate server and aggregates multiple providers
-- **SpotifyPlus** is feature-rich but complex to set up for simple voice commands
-- **Custom Sentences** require rigid YAML patterns - "Play {artist} on {speaker}" instead of natural language
-- **Built-in Spotify integration** has no search service for voice assistants to use
-- **Standard Spotify search returns wrong artists** - Personalized recommendations instead of exact matches (ask for Coldplay, get Taylor Swift)
-
-## The Solution
-
-A lightweight integration designed specifically for voice assistants with function calling:
-
-✅ **Direct Spotify Connect integration** - No music server required, uses Home Assistant's official Spotify integration
-✅ **Natural language from day one** - "Play Coldplay" not "play artist equals Coldplay"
-✅ **Zero additional authentication** - Reuses your existing Home Assistant Spotify OAuth
-✅ **Exact match artist search** - Finds Coldplay when you ask for Coldplay, not recommendations
-✅ **Works with any Spotify Connect device** - WiiM, Sonos, Google Cast, Echo, whatever you have
-✅ **Under 120 lines of code** - Simple, maintainable, easy to understand
-✅ **Voice assistant ready** - Complete conversation agent examples included
+- **Natural language voice control** - "Play Coldplay" not "play artist equals Coldplay"
+- **Zero additional authentication** - Reuses your existing Home Assistant Spotify OAuth
+- **Exact match search** - Finds Coldplay when you ask for Coldplay, not recommendations
+- **Works with any Spotify Connect device** - WiiM, Sonos, Google Cast, Echo, whatever you have
+- **Lightweight and simple** - Direct Spotify Connect integration, no music server required
+- **Complete examples included** - Function calling config for Extended OpenAI Conversation
 
 ## Comparison with Alternatives
 
@@ -59,28 +42,29 @@ A lightweight integration designed specifically for voice assistants with functi
 |---------|------------------------|----------|-----------------|-------------|
 | **Primary Focus** | Voice search for conversation agents | Casting | Complete music server | Spotify API wrapper |
 | **Architecture** | Direct Spotify Connect | Spotify API | Music server (aggregates providers) | Spotify API |
-| **Lines of Code** | <120 | 1000+ | 10,000+ | 5000+ |
+| **Complexity** | Minimal | Moderate | High | High |
 | **Authentication** | Reuses HA OAuth | Cookies (breaks often) | Own server auth | Own OAuth flow |
 | **Setup Complexity** | 1 YAML line | Cookies + config | Full server install | Complex config |
-| **Exact Artist Match** | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
-| **Voice Support** | ✅ Function calling | ⚠️ Manual scripts | ✅ HA Assist integration | ⚠️ Manual scripts |
-| **Natural Language** | ✅ Via conversation agent | ❌ Rigid patterns | ✅ Via HA Assist | ❌ Manual calls |
+| **Exact Artist Match** | Yes | No | Yes | Yes |
+| **Voice Support** | Function calling | Manual scripts | HA Assist integration | Manual scripts |
+| **Natural Language** | Via conversation agent | Rigid patterns | Via HA Assist | Manual calls |
 | **External Dependencies** | None | None | Separate server | None |
 | **Hardware Support** | Any Spotify Connect | Chromecast focused | Universal | Any Spotify Connect |
 
 ## Features
 
-- ✅ **Voice-first design** - Built for natural language from day one
-- ✅ **Hardware agnostic** - Works with any Spotify Connect device
-- ✅ **Search by type** - Artists, albums, tracks, and playlists
-- ✅ **Exact match preference** - Finds what you ask for across all content types, not recommendations
-- ✅ **Smart playlist search** - Checks your personal playlists first, then falls back to public Spotify playlists
-- ✅ **Complete examples** - Extended OpenAI Conversation config included
-- ✅ **Playback control** - Pause, play, skip, volume, shuffle - all via voice
-- ✅ **Artist radio mode** - Automatically shuffles when playing artists for dynamic playlists
-- ✅ **Zero config authentication** - Leverages existing Spotify integration
-- ✅ **Detailed logging** - Debug mode shows exactly what's happening
-- ✅ **Service response support** - Returns data to automations/scripts
+- **Voice-first design** - Built for natural language from day one
+- **Hardware agnostic** - Works with any Spotify Connect device
+- **Search by type** - Artists, albums, tracks, and playlists
+- **Exact match preference** - Finds what you ask for across all content types, not recommendations
+- **Smart playlist search** - Checks your personal playlists first, then falls back to public Spotify playlists
+- **Complete examples** - Extended OpenAI Conversation config included
+- **Playback control** - Pause, play, skip, volume, shuffle - all via voice
+- **Play and queue modes** - Replace current playback or add to queue seamlessly
+- **Artist radio mode** - Automatically shuffles when playing artists for dynamic playlists
+- **Zero config authentication** - Leverages existing Spotify integration
+- **Detailed logging** - Debug mode shows exactly what's happening
+- **Service response support** - Returns data to automations/scripts
 
 ## Quick Start
 
@@ -114,145 +98,25 @@ spotify_search:
 
 ### 3. Configure Extended OpenAI Conversation
 
-Copy these functions to Extended OpenAI Conversation settings:
+**Add Functions:**
 
-<details>
-<summary>Click to expand function configuration</summary>
+Copy the function configuration from [`examples/extended_openai_functions.yaml`](examples/extended_openai_functions.yaml) to your Extended OpenAI Conversation settings.
 
-```yaml
-- spec:
-    name: search_spotify
-    description: Search Spotify for an artist, album, track, or playlist and return the Spotify URI. Use this before playing music to get the URI.
-    parameters:
-      type: object
-      properties:
-        query:
-          type: string
-          description: Artist, album, track, or playlist name to search for (e.g., "Coldplay", "Parachutes", "Yellow", "Today's Top Hits")
-        type:
-          type: string
-          enum: [artist, album, track, playlist]
-          description: Type of content to search for. Playlist searches check your personal playlists first, then fall back to public Spotify playlists.
-      required:
-        - query
-        - type
-  function:
-    type: script
-    sequence:
-      - service: spotify_search.search
-        response_variable: _function_result
-        data:
-          query: "{{ query }}"
-          type: "{{ type }}"
+This includes:
+- `search_spotify` - Search for music and get Spotify URIs
+- `play_music` - Play music immediately (replaces current playback)
+- `queue_music` - Add music to queue (doesn't interrupt playback)
+- `control_playback` - Pause, play, skip, volume, shuffle controls
 
-- spec:
-    name: play_music
-    description: Play music on a Spotify Connect device using a Spotify URI. You must first call search_spotify to get the URI.
-    parameters:
-      type: object
-      properties:
-        spotify_uri:
-          type: string
-          description: Spotify URI from search_spotify (e.g., "spotify:artist:4gzpq5DPGxSnKTe4SA8HAU")
-        media_player:
-          type: string
-          description: Entity ID of Spotify Connect media player (e.g., "media_player.kitchen_speaker")
-      required:
-        - spotify_uri
-        - media_player
-  function:
-    type: script
-    sequence:
-      - service: media_player.play_media
-        target:
-          entity_id: "{{ media_player }}"
-        data:
-          media_content_id: "{{ spotify_uri }}"
-          media_content_type: "music"
+**Add System Prompt:**
 
-- spec:
-    name: control_playback
-    description: Control music playback (pause, resume, stop, next track, previous track, set volume, shuffle)
-    parameters:
-      type: object
-      properties:
-        action:
-          type: string
-          enum: [pause, play, stop, next_track, previous_track, volume_set, shuffle_on, shuffle_off]
-          description: Playback control action
-        media_player:
-          type: string
-          description: Entity ID of media player
-        volume_level:
-          type: number
-          description: Volume level (0-100) for volume_set action only
-      required:
-        - action
-        - media_player
-  function:
-    type: script
-    sequence:
-      - if: "{{ action == 'pause' }}"
-        then:
-          - service: media_player.media_pause
-            target:
-              entity_id: "{{ media_player }}"
-      - if: "{{ action == 'play' }}"
-        then:
-          - service: media_player.media_play
-            target:
-              entity_id: "{{ media_player }}"
-      - if: "{{ action == 'stop' }}"
-        then:
-          - service: media_player.media_stop
-            target:
-              entity_id: "{{ media_player }}"
-      - if: "{{ action == 'next_track' }}"
-        then:
-          - service: media_player.media_next_track
-            target:
-              entity_id: "{{ media_player }}"
-      - if: "{{ action == 'previous_track' }}"
-        then:
-          - service: media_player.media_previous_track
-            target:
-              entity_id: "{{ media_player }}"
-      - if: "{{ action == 'volume_set' }}"
-        then:
-          - service: media_player.volume_set
-            target:
-              entity_id: "{{ media_player }}"
-            data:
-              volume_level: "{{ volume_level / 100 }}"
-      - if: "{{ action == 'shuffle_on' }}"
-        then:
-          - service: media_player.shuffle_set
-            target:
-              entity_id: "{{ media_player }}"
-            data:
-              shuffle: true
-      - if: "{{ action == 'shuffle_off' }}"
-        then:
-          - service: media_player.shuffle_set
-            target:
-              entity_id: "{{ media_player }}"
-            data:
-              shuffle: false
-```
-</details>
+Copy the music playback rules from [`examples/system_prompt.txt`](examples/system_prompt.txt) to your Extended OpenAI Conversation system prompt.
 
-Add this to your Extended OpenAI Conversation system prompt:
-
-```
-Music Playback:
-- When asked to play music, follow this two-step process: 1) Call search_spotify to get the Spotify URI, 2) Call play_music with the URI and media player entity
-- Available media players: media_player.kitchen_speaker, media_player.gaming_room_speaker, media_player.office_speaker
-- Default speaker: If no speaker is specified, use media_player.kitchen_speaker
-- Parse commands like "Play {Artist/Album/Track/Playlist}" and determine the media type automatically (artist, album, track, playlist, or user_playlist)
-- IMPORTANT: Use type="user_playlist" when user says "my playlist", "my [playlist name]", or refers to their personal saved playlists. Use type="playlist" for public Spotify playlists like "Today's Top Hits"
-- IMPORTANT: When playing an artist, always enable shuffle after starting playback by calling control_playback with action: shuffle_on to create a dynamic playlist experience
-- For playback control (pause, skip, volume, shuffle), use the control_playback function
-```
+Key behaviors configured:
+- Play vs Queue command detection
+- Automatic query cleaning (strips "play", "queue", location words)
+- Smart type detection (artist/album/track/playlist)
+- No confirmation prompts for immediate playback
 
 **Customization tips:**
 - **Entity IDs are descriptive** (like `media_player.kitchen_speaker`): Just list the entity IDs as shown above
@@ -268,8 +132,11 @@ Music Playback:
 - "Play Coldplay on the kitchen speaker"
 - "Play the album Parachutes"
 - "Play Yellow by Coldplay"
+- "Play the song Dark Side of the Moon by Pink Floyd"
 - "Play Today's Top Hits"
 - "Play my workout playlist"
+- "Queue Wish You Were Here"
+- "Add the album Dark Side of the Moon to queue"
 - "Pause the music"
 - "Skip to the next track"
 - "Set volume to 50%"
@@ -286,6 +153,8 @@ Music Playback:
 - "Put on some music from that British band with Chris Martin"
 - "Play my chill vibes playlist"
 - "Put on my running music"
+- "Queue up some Pink Floyd for later"
+- "Add Comfortably Numb to the queue"
 
 **Conversational Playback Control:**
 - "Make it louder" (instead of "Set volume to 70")
@@ -298,105 +167,21 @@ Music Playback:
 
 ## Why Natural Language Matters
 
-Traditional voice assistants require specific sentence patterns:
-```
-Intent Pattern: "Play [artist] on [speaker]"
-✅ Works: "Play Coldplay on kitchen speaker"
-❌ Fails: "I want to listen to Coldplay"
-❌ Fails: "Put on some Coldplay"
-❌ Fails: "Start playing Coldplay in the kitchen"
-```
-
-This integration uses LLM-based function calling to understand conversational requests:
-```
-LLM Understanding: Extracts intent from natural speech
-✅ Works: "Play Coldplay on kitchen speaker"
-✅ Works: "I want to listen to Coldplay"
-✅ Works: "Put on some Coldplay"
-✅ Works: "Start playing Coldplay in the kitchen"
-✅ Works: "Play me that British band with Chris Martin"
-```
-
-The LLM understands **what you mean**, not just **what you say**.
+Traditional voice assistants require exact patterns like "Play [artist] on [speaker]". LLM-based function calling understands conversational requests: "I want to listen to Coldplay", "Put on some Coldplay", or even "Play me that British band with Chris Martin" all work naturally.
 
 ## Compatible Speakers
 
-This integration works with **any Spotify Connect-compatible device**:
+Works with **any Spotify Connect-compatible device** that appears in Home Assistant as a `media_player` entity.
 
-### Tested & Verified
-- **WiiM Audio Pro** (and all WiiM speakers)
-- **Sonos speakers** (all models with Spotify)
-- **Google Nest/Home speakers**
-- **Amazon Echo with Spotify**
+**Requirements:**
+- Spotify Premium account (required for Spotify Connect)
+- Device appears in Home Assistant's Spotify integration
+- Device supports Spotify Connect
 
-### Should Work (Spotify Connect Compatible)
-- **Smart Speakers:**
-  - Apple HomePod (with Spotify app)
-  - Bose Home Speaker series
-  - JBL Link series
-  - Harman Kardon Citation series
-  - Bang & Olufsen Beosound series
+**Tested devices:** WiiM speakers, Sonos, Google Nest/Home, Amazon Echo
 
-- **Streaming Devices:**
-  - Chromecast Audio
-  - Roku with Spotify channel
-  - Fire TV with Spotify
-  - Apple TV with Spotify app
+**Should work:** Any smart speaker, AV receiver, streaming device, or computer with Spotify Connect support. This includes HomePod, Chromecast, Fire TV, Raspberry Pi with [Raspotify](https://github.com/dtcooper/raspotify), and more.
 
-- **AV Receivers:**
-  - Denon HEOS-enabled receivers
-  - Yamaha MusicCast receivers
-  - Marantz NR/SR series
-  - Pioneer VSX series with Spotify
-
-- **DIY Solutions:**
-  - Raspberry Pi with [Raspotify](https://github.com/dtcooper/raspotify)
-  - Raspberry Pi with [Spotifyd](https://github.com/Spotifyd/spotifyd)
-  - Any Linux/Mac/Windows computer running Spotify
-
-- **Mobile Devices:**
-  - Phones/tablets running Spotify app (for testing)
-
-### Requirements
-- **Spotify Premium account** (Spotify Connect requires Premium)
-- **Device must show up in Home Assistant** as a `media_player` entity
-- **Device must support Spotify Connect** (check manufacturer specs)
-
-**Note:** If your device runs Spotify and shows up in Home Assistant's integrations, it will work with this integration.
-
-## Works Alongside Music Assistant
-
-Music Assistant and this integration serve different purposes and work well together:
-
-### Music Assistant
-- **Purpose:** Full-featured music server with rich UI, multi-room audio, queue management
-- **Architecture:** Music server that aggregates multiple providers (Spotify, local files, streaming services)
-- **Voice support:** [Built-in voice integration](https://github.com/music-assistant/voice-support) works with Home Assistant Assist (with or without LLM enhancement)
-- **Best for:** Complete music management solution with visual control
-
-### This Integration (Spotify Voice Assistant)
-- **Purpose:** Lightweight Spotify search service for conversation agents with function calling support
-- **Architecture:** Direct Spotify Connect integration via Home Assistant's official Spotify integration (no music server required)
-- **Works with:** Any conversation agent that supports function calling (Extended OpenAI Conversation, OpenAI Conversation, Google Generative AI Conversation, etc.)
-- **Best for:** Adding Spotify voice control without running a full music server
-
-### Using Both Together
-
-Many users run both simultaneously:
-- **Music Assistant:** Provides UI for manual control, queue management, and automations (skip voice setup)
-- **This integration:** Handles voice control via custom conversation agents
-- **They work together:** Music started via voice appears in Music Assistant UI and remains fully controllable there
-
-**Example workflow:** Say "Play Coldplay on office speaker" → music starts → open Music Assistant UI → see what's playing, adjust volume, skip tracks, manage queue.
-
-They don't directly integrate but work together because both control the same Spotify Connect devices independently.
-
-### Choose Your Setup
-
-- **Voice only:** Use this integration alone
-- **Voice + rich UI:** Use both (Music Assistant without voice + this integration)
-- **Home Assistant Assist voice:** Use Music Assistant's [built-in voice support](https://github.com/music-assistant/voice-support)
-- **Custom conversation agent voice:** Use this integration
 
 ## How It Works
 
@@ -453,25 +238,7 @@ The integration leverages Home Assistant's official Spotify integration:
 
 ### Performance Optimization
 
-The integration includes smart caching for optimal performance:
-
-**Spotify Client Cache:**
-- **First search:** ~1.6-5.6ms (finds and caches Spotify client)
-- **Subsequent searches:** ~0.1ms (uses cached client)
-- **Performance gain:** 15-50x faster on repeated searches
-
-**User Playlist Cache:**
-- **First user_playlist search:** Fetches all user playlists from Spotify API
-- **Subsequent user_playlist searches:** Uses cached playlist data
-- **Performance gain:** Significantly faster for users with large playlist libraries
-
-**Cache Features:**
-- Automatically validates cached client on every call
-- Self-invalidates when Spotify integration is reloaded or removed
-- Caches user playlists to avoid repeated API calls
-- Manual cache clearing available via `spotify_search.clear_cache` service
-
-The cache is module-level and process-scoped, so it clears automatically on Home Assistant restart.
+The integration uses smart caching to speed up repeated searches. The Spotify client and user playlists are cached automatically. Cache clears on Home Assistant restart or can be cleared manually via the `spotify_search.clear_cache` service.
 
 ## Advanced Usage
 
@@ -550,20 +317,6 @@ automation:
           media_content_id: "{{ artist_result.uri }}"
           media_content_type: "music"
 ```
-
-### Prompt Optimization for Multi-part Queries
-
-For better accuracy when users provide both song/album AND artist names, enhance your Extended OpenAI Conversation system prompt to combine search terms:
-
-```
-Music Query Optimization:
-- When user provides both song/album AND artist, combine them into the search query
-- Example: "Play Yellow by Coldplay" → search_spotify(query="Yellow Coldplay", type="track")
-- Example: "Play Parachutes album by Coldplay" → search_spotify(query="Parachutes Coldplay", type="album")
-- The combined query improves search accuracy by providing more context to Spotify
-```
-
-This approach leverages Spotify's search algorithm to naturally weight both terms, improving accuracy when multiple artists have songs/albums with the same name.
 
 ### Clear Cache Service
 
@@ -660,12 +413,12 @@ Typical "Play Coldplay" command:
 
 **1. Choose a faster LLM**
 - **Slow (2-5 min):** Large models on CPU (qwen3:8b, llama3:8b)
-- **Medium (5-15 sec):** Small local models (qwen3:1.8b, phi3:mini)
+- **Medium (5-15 sec):** Small local models (qwen3:4b, qwen3:1.8b)
 - **Fast (2-5 sec):** Cloud APIs (OpenAI GPT-4o-mini, Anthropic Claude Haiku)
 
 **2. Reduce exposed devices**
 
-Each device in your conversation agent adds tokens to every LLM call, slowing processing:
+Avoid exposing unnecessary devices to your voice assistant. Each device in your conversation agent adds tokens to every LLM call, slowing processing:
 - **38 devices:** ~1,600 tokens = slower responses
 - **25 devices:** ~1,000 tokens = 20-30% faster
 
@@ -677,16 +430,7 @@ Each device in your conversation agent adds tokens to every LLM call, slowing pr
 **3. Enable GPU acceleration**
 
 If using Ollama locally, GPU acceleration provides 5-10x speedup over CPU.
-
-### Expected Performance
-
-| Configuration | Response Time |
-|---------------|---------------|
-| Cloud API (GPT-4o-mini) + 25 devices | 2-5 seconds ✅ |
-| Local GPU (qwen3:8b) + 25 devices | 10-30 seconds |
-| Local CPU (qwen3:8b) + 38 devices | 2-5 minutes ❌ |
-
-**Bottom line:** This integration adds <1 second overhead. LLM choice determines user experience.
+If using Docker, remember, [GPU support isn't enabled by default](https://docs.docker.com/compose/how-tos/gpu-support/).
 
 ## Roadmap
 

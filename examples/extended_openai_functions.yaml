@@ -1,5 +1,44 @@
 # Extended OpenAI Conversation Function Configuration
-# Add these to your Extended OpenAI Conversation integration settings
+# Add these to your existing Extended OpenAI Conversation integration function configuration.
+
+# NOTE: Ensure that the native function 'execute_service' is defined in your Home Assistant instance.
+# If so, skip this one and just grab the other functions below to add.
+- spec:
+    name: execute_services
+    description: Use this function to execute service of devices in Home Assistant.
+    parameters:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: object
+            properties:
+              domain:
+                type: string
+                description: The domain of the service
+              service:
+                type: string
+                description: The service to be called
+              service_data:
+                type: object
+                description: The service data object to indicate what to control.
+                properties:
+                  entity_id:
+                    type: string
+                    description: The entity_id retrieved from available devices.
+                required:
+                  - entity_id
+            required:
+              - domain
+              - service
+              - service_data
+  function:
+    type: native
+    name: execute_service
+
+
+# Spotify Music Control Functions
 
 - spec:
     name: search_spotify
@@ -28,7 +67,7 @@
 
 - spec:
     name: play_music
-    description: Play music on a Spotify Connect device using a Spotify URI. You must first call search_spotify to get the URI.
+    description: Play music immediately on a Spotify Connect device using a Spotify URI, replacing current playback. You must first call search_spotify to get the URI. Use this when user says "play".
     parameters:
       type: object
       properties:
@@ -50,6 +89,33 @@
         data:
           media_content_id: "{{ spotify_uri }}"
           media_content_type: "music"
+          enqueue: replace
+
+- spec:
+    name: queue_music
+    description: Add music to the queue on a Spotify Connect device using a Spotify URI, without interrupting current playback. You must first call search_spotify to get the URI. Use this when user says "queue" or "add to queue".
+    parameters:
+      type: object
+      properties:
+        spotify_uri:
+          type: string
+          description: Spotify URI from search_spotify (e.g., "spotify:artist:4gzpq5DPGxSnKTe4SA8HAU")
+        media_player:
+          type: string
+          description: Entity ID of Spotify Connect media player (e.g., "media_player.kitchen_speaker")
+      required:
+        - spotify_uri
+        - media_player
+  function:
+    type: script
+    sequence:
+      - service: media_player.play_media
+        target:
+          entity_id: "{{ media_player }}"
+        data:
+          media_content_id: "{{ spotify_uri }}"
+          media_content_type: "music"
+          enqueue: add
 
 - spec:
     name: control_playback
