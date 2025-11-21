@@ -1,13 +1,17 @@
 """Spotify Search Integration for Home Assistant."""
 import logging
 import re
+import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "spotify_search"
 VALID_SEARCH_TYPES = {"artist", "album", "track", "playlist"}
+
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 # Cache Spotify client to avoid repeated lookups
 _spotify_cache = {
