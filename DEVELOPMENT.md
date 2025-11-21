@@ -158,7 +158,9 @@ Before each release:
 - [ ] Test artist search with first result fallback
 - [ ] Test album search
 - [ ] Test track search
-- [ ] Test playlist search
+- [ ] Test playlist search (user playlists and public)
+- [ ] Test queue functionality (play vs queue modes)
+- [ ] Test shuffle controls (on/off)
 - [ ] Test via voice commands through Extended OpenAI Conversation
 - [ ] Test via Developer Tools service call
 - [ ] Test clear_cache service
@@ -173,7 +175,7 @@ Before each release:
 spotify-voice-assistant/
 ├── custom_components/
 │   └── spotify_search/
-│       ├── __init__.py          # Main integration code (186 lines)
+│       ├── __init__.py          # Main integration code
 │       ├── manifest.json        # Version and metadata
 │       └── services.yaml        # Service definitions
 ├── examples/                    # User examples
