@@ -1,6 +1,6 @@
 {
-  "domain": "spotify_search",
-  "name": "Spotify Voice Assistant",
+  "domain": "spotify_voice_assistant",
+  "name": "Spotify Voice Assistant Search",
   "codeowners": ["@cauld"],
   "config_flow": false,
   "dependencies": ["spotify"],

@@ -13,14 +13,14 @@ For Docker-based Home Assistant installations, use a bind mount to link this rep
 ```bash
 # Docker run example
 docker run ... \
-  -v /path/to/spotify-voice-assistant/custom_components/spotify_search:/config/custom_components/spotify_search:ro \
+  -v /path/to/spotify-voice-assistant/custom_components/spotify_voice_assistant:/config/custom_components/spotify_voice_assistant:ro \
   ...
 
 # docker-compose.yml example
 services:
   homeassistant:
     volumes:
-      - /path/to/spotify-voice-assistant/custom_components/spotify_search:/config/custom_components/spotify_search:ro
+      - /path/to/spotify-voice-assistant/custom_components/spotify_voice_assistant:/config/custom_components/spotify_voice_assistant:ro
 ```
 
 **Benefits:**
@@ -38,11 +38,11 @@ If you have direct filesystem access to your Home Assistant config directory:
 
 ```bash
 # Remove existing installation (if using HACS version)
-rm -rf /path/to/homeassistant/config/custom_components/spotify_search
+rm -rf /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 
 # Create symlink to your development repo
-ln -s /path/to/your/spotify-voice-assistant/custom_components/spotify_search \
-      /path/to/homeassistant/config/custom_components/spotify_search
+ln -s /path/to/your/spotify-voice-assistant/custom_components/spotify_voice_assistant \
+      /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 ```
 
 **Important for Docker:** If using symlinks with Docker, ensure the symlink target path is accessible from inside the container (either mounted or within the config volume).
@@ -71,7 +71,7 @@ Understanding when you need to restart Home Assistant vs just reloading the inte
 
 ```bash
 cd /path/to/your/spotify-voice-assistant
-# Edit files in custom_components/spotify_search/
+# Edit files in custom_components/spotify_voice_assistant/
 ```
 
 ### 2. Test Changes
@@ -84,7 +84,7 @@ docker restart homeassistant
 # Use Developer Tools > YAML > Core Configuration
 
 # Watch logs in real-time
-docker logs -f homeassistant 2>&1 | grep spotify_search
+docker logs -f homeassistant 2>&1 | grep spotify_voice_assistant
 ```
 
 ### 3. Commit Changes
@@ -122,7 +122,7 @@ docker restart homeassistant
 **For symlink setup:**
 ```bash
 # Remove symlink
-rm /path/to/homeassistant/config/custom_components/spotify_search
+rm /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 
 # Install via HACS
 # HACS > Integrations > Spotify Voice Assistant > Install
@@ -141,11 +141,11 @@ docker restart homeassistant
 **For symlink setup:**
 ```bash
 # Remove HACS version
-rm -rf /path/to/homeassistant/config/custom_components/spotify_search
+rm -rf /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 
 # Recreate symlink
-ln -s /path/to/your/spotify-voice-assistant/custom_components/spotify_search \
-      /path/to/homeassistant/config/custom_components/spotify_search
+ln -s /path/to/your/spotify-voice-assistant/custom_components/spotify_voice_assistant \
+      /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 
 # Restart Home Assistant
 ```
@@ -174,7 +174,7 @@ Before each release:
 ```
 spotify-voice-assistant/
 ├── custom_components/
-│   └── spotify_search/
+│   └── spotify_voice_assistant/
 │       ├── __init__.py          # Main integration code
 │       ├── manifest.json        # Version and metadata
 │       └── services.yaml        # Service definitions
@@ -195,7 +195,7 @@ In Home Assistant `configuration.yaml`:
 logger:
   default: info
   logs:
-    custom_components.spotify_search: debug
+    custom_components.spotify_voice_assistant: debug
 ```
 
 After adding debug logging, restart Home Assistant to apply.
@@ -204,31 +204,31 @@ After adding debug logging, restart Home Assistant to apply.
 
 ```bash
 # Watch integration logs in real-time (Docker example)
-docker logs -f homeassistant 2>&1 | grep spotify_search
+docker logs -f homeassistant 2>&1 | grep spotify_voice_assistant
 
 # Check if integration loaded successfully
-docker logs homeassistant 2>&1 | grep "Setting up spotify_search"
+docker logs homeassistant 2>&1 | grep "Setting up spotify_voice_assistant"
 
 # Verify bind mount or symlink
 # For bind mount:
-docker inspect homeassistant | grep spotify_search
+docker inspect homeassistant | grep spotify_voice_assistant
 
 # For symlink:
-ls -la /path/to/homeassistant/config/custom_components/spotify_search
+ls -la /path/to/homeassistant/config/custom_components/spotify_voice_assistant
 
 # Check manifest version
-cat custom_components/spotify_search/manifest.json | grep version
+cat custom_components/spotify_voice_assistant/manifest.json | grep version
 
 # Check Python syntax without running
-python3 -m py_compile custom_components/spotify_search/__init__.py
+python3 -m py_compile custom_components/spotify_voice_assistant/__init__.py
 ```
 
 ### Debug Logging Output
 
 When working correctly, you should see:
 ```
-INFO Setting up spotify_search
-INFO Setup of domain spotify_search took 0.00 seconds
+INFO Setting up spotify_voice_assistant
+INFO Setup of domain spotify_voice_assistant took 0.00 seconds
 DEBUG Cache miss, performing Spotify entity lookup
 DEBUG Found Spotify entity: media_player.spotify_xxx
 DEBUG Spotify client type: SpotifyClient
@@ -246,7 +246,7 @@ DEBUG Using cached Spotify client  # <-- Caching is working!
 
 Via Developer Tools > Services:
 ```yaml
-service: spotify_search.search
+service: spotify_voice_assistant.search
 data:
   query: "Coldplay"
   type: "artist"
@@ -264,7 +264,7 @@ Expected response:
 ### Test Clear Cache Service
 
 ```yaml
-service: spotify_search.clear_cache
+service: spotify_voice_assistant.clear_cache
 ```
 
 Expected response:
@@ -305,7 +305,7 @@ When making improvements:
 **Example:**
 ```bash
 # Update manifest.json version to 1.1.0
-git add custom_components/spotify_search/manifest.json
+git add custom_components/spotify_voice_assistant/manifest.json
 git commit -m "Add support for podcast search"
 git push
 
@@ -332,17 +332,17 @@ cp /path/to/homeassistant/config/configuration.yaml \
 
 ### Integration Not Loading
 
-**Symptom:** No "Setting up spotify_search" in logs
+**Symptom:** No "Setting up spotify_voice_assistant" in logs
 
 **Check:**
 1. Verify bind mount or symlink is correct
-2. Check `configuration.yaml` has `spotify_search:` entry
+2. Check `configuration.yaml` has `spotify_voice_assistant:` entry
 3. Ensure files are readable by HA container user
 4. Look for Python syntax errors in logs
 
 **Docker bind mount check:**
 ```bash
-docker inspect homeassistant | grep -A2 spotify_search
+docker inspect homeassistant | grep -A2 spotify_voice_assistant
 ```
 
 ### Symlink Not Working in Docker
@@ -367,13 +367,13 @@ docker inspect homeassistant | grep -A2 spotify_search
 
 ```bash
 # Check Python syntax
-python3 -m py_compile custom_components/spotify_search/__init__.py
+python3 -m py_compile custom_components/spotify_voice_assistant/__init__.py
 
 # Check for common issues
-grep -n "TODO\|FIXME\|XXX" custom_components/spotify_search/*.py
+grep -n "TODO\|FIXME\|XXX" custom_components/spotify_voice_assistant/*.py
 
 # Ensure no debug print statements
-grep -n "print(" custom_components/spotify_search/*.py
+grep -n "print(" custom_components/spotify_voice_assistant/*.py
 ```
 
 ### Code Standards

@@ -2,10 +2,10 @@
 # Add to your configuration.yaml
 
 # Spotify Voice Assistant Integration
-spotify_search:
+spotify_voice_assistant:
 
 # Optional: Enable debug logging as needed
 logger:
   default: info
   logs:
-    custom_components.spotify_search: debug
+    custom_components.spotify_voice_assistant: debug

@@ -1,4 +1,4 @@
-"""Spotify Search Integration for Home Assistant."""
+"""Spotify Voice Assistant Search Integration for Home Assistant."""
 import logging
 import re
 import voluptuous as vol
@@ -8,7 +8,7 @@ from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "spotify_search"
+DOMAIN = "spotify_voice_assistant"
 VALID_SEARCH_TYPES = {"artist", "album", "track", "playlist"}
 
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
@@ -106,7 +106,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         search_type = call.data.get("type", "artist")
 
         if not raw_query:
-            _LOGGER.error("No query provided to spotify_search")
+            _LOGGER.error("No query provided to spotify_voice_assistant")
             return {"error": "No query provided"}
 
         if search_type not in VALID_SEARCH_TYPES:

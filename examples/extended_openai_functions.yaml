@@ -59,7 +59,7 @@
   function:
     type: script
     sequence:
-      - service: spotify_search.search
+      - service: spotify_voice_assistant.search
         response_variable: _function_result
         data:
           query: "{{ query }}"

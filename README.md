@@ -92,12 +92,12 @@ Say goodbye to complex configurations. Get voice-controlled music in 3 steps:
 
 **Manual Installation:**
 1. Download this repository
-2. Copy `custom_components/spotify_search` to your HA `custom_components` folder
+2. Copy `custom_components/spotify_voice_assistant` to your HA `custom_components` folder
 3. Restart Home Assistant
 
 Add to `configuration.yaml`:
 ```yaml
-spotify_search:
+spotify_voice_assistant:
 ```
 
 ### 3. Configure Extended OpenAI Conversation
@@ -242,7 +242,7 @@ The integration leverages Home Assistant's official Spotify integration:
 
 ### Performance Optimization
 
-The integration uses smart caching to speed up repeated searches. The Spotify client and user playlists are cached automatically. Cache clears on Home Assistant restart or can be cleared manually via the `spotify_search.clear_cache` service.
+The integration uses smart caching to speed up repeated searches. The Spotify client and user playlists are cached automatically. Cache clears on Home Assistant restart or can be cleared manually via the `spotify_voice_assistant.clear_cache` service.
 
 ## Advanced Usage
 
@@ -267,7 +267,7 @@ The integration supports five search types:
 Test the search service directly:
 
 ```yaml
-service: spotify_search.search
+service: spotify_voice_assistant.search
 data:
   query: "Coldplay"
   type: "artist"
@@ -285,7 +285,7 @@ Response:
 Test user playlist search:
 
 ```yaml
-service: spotify_search.search
+service: spotify_voice_assistant.search
 data:
   query: "workout"
   type: "user_playlist"
@@ -309,7 +309,7 @@ automation:
       - platform: time
         at: "07:00:00"
     action:
-      - service: spotify_search.search
+      - service: spotify_voice_assistant.search
         response_variable: artist_result
         data:
           query: "Chillhop Music"
@@ -327,7 +327,7 @@ automation:
 If you experience issues or want to refresh cached data (e.g., after adding new playlists to your Spotify library), you can manually clear the cache:
 
 ```yaml
-service: spotify_search.clear_cache
+service: spotify_voice_assistant.clear_cache
 ```
 
 This clears:
@@ -349,7 +349,7 @@ Enable detailed logging in `configuration.yaml`:
 logger:
   default: info
   logs:
-    custom_components.spotify_search: debug
+    custom_components.spotify_voice_assistant: debug
 ```
 
 This shows search queries, match types (exact vs. first result), and any errors.
