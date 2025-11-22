@@ -140,62 +140,46 @@
     type: script
     sequence:
       - choose:
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'pause' }}"
+          - conditions: "{{ action == 'pause' }}"
             sequence:
               - service: media_player.media_pause
                 target:
                   entity_id: "{{ media_player }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'play' }}"
+          - conditions: "{{ action == 'play' }}"
             sequence:
               - service: media_player.media_play
                 target:
                   entity_id: "{{ media_player }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'stop' }}"
+          - conditions: "{{ action == 'stop' }}"
             sequence:
               - service: media_player.media_stop
                 target:
                   entity_id: "{{ media_player }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'next_track' }}"
+          - conditions: "{{ action == 'next_track' }}"
             sequence:
               - service: media_player.media_next_track
                 target:
                   entity_id: "{{ media_player }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'previous_track' }}"
+          - conditions: "{{ action == 'previous_track' }}"
             sequence:
               - service: media_player.media_previous_track
                 target:
                   entity_id: "{{ media_player }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'volume_set' }}"
+          - conditions: "{{ action == 'volume_set' }}"
             sequence:
               - service: media_player.volume_set
                 target:
                   entity_id: "{{ media_player }}"
                 data:
                   volume_level: "{{ volume_level / 100 }}"
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'shuffle_on' }}"
+          - conditions: "{{ action == 'shuffle_on' }}"
             sequence:
               - service: media_player.shuffle_set
                 target:
                   entity_id: "{{ media_player }}"
                 data:
                   shuffle: true
-          - conditions:
-              - condition: template
-                value_template: "{{ action == 'shuffle_off' }}"
+          - conditions: "{{ action == 'shuffle_off' }}"
             sequence:
               - service: media_player.shuffle_set
                 target:
