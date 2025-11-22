@@ -1,3 +1,7 @@
+<div align="center" style="background-color: rgb(35, 35, 37);">
+  <img src="images/banner.png" alt="Spotify Voice Assistant Banner" width="100%">
+</div>
+
 # Spotify Voice Assistant (SVA) for Home Assistant
 
 **Voice-controlled Spotify playback using natural language.** Just say "Play Coldplay on the kitchen speaker" and your music starts playing - no complex YAML patterns and no cookie authentication.
