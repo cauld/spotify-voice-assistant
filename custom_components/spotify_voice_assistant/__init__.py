@@ -45,7 +45,7 @@ def clean_query(query: str, search_type: str) -> str:
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Spotify Search component."""
+    """Set up the Spotify Voice Assistant Search component."""
 
     async def get_spotify_client():
         """Get Spotify client with caching and validation."""
