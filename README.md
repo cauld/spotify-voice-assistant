@@ -85,7 +85,7 @@ Say goodbye to complex configurations. Get voice-controlled music in 3 steps:
 
 **Via HACS (Recommended):**
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Chad+Auld&repository=https%3A%2F%2Fgithub.com%2Fcauld%2Fspotify-voice-assistant&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cauld&repository=spotify-voice-assistant&category=integration)
 
 Or manually:
 1. HACS > Integrations > ⋮ (menu) > Custom repositories
