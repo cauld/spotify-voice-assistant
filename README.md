@@ -8,7 +8,7 @@
 
 ## Requirements
 
-Before using this integration, you need:
+Before using this integration, you need: 
 
 1. **Home Assistant** - Obviously!
 2. **Spotify Premium account** - Required for Spotify Connect API
